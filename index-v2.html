@@ -1539,6 +1539,12 @@
                 localStorage.setItem('motherBabySettings', JSON.stringify(settings));
                 localStorage.setItem('motherBabyCompletedReminders', JSON.stringify(completedReminders));
                 
+                // 确保completionDates存在并保存到localStorage
+                if (!window.completionDates) {
+                    window.completionDates = {};
+                }
+                localStorage.setItem('motherBabyReminderCompletionDates', JSON.stringify(window.completionDates));
+                
                 // 验证completedReminders是否保存成功
                 const savedCompletedReminders = localStorage.getItem('motherBabyCompletedReminders');
                 if (savedCompletedReminders) {
@@ -3251,9 +3257,11 @@ function showModal(modalId) {
                 localStorage.motherBabyReminderCompletionDates = JSON.stringify({});
             }
             const completionDates = JSON.parse(localStorage.motherBabyReminderCompletionDates);
+            window.completionDates = completionDates; // 保存到全局变量以便在markReminderAsCompleted函数中使用
             
+            // 只保留今天完成的提醒
             const todayCompletedReminders = completedReminders.filter(reminderId => {
-                return !completionDates[reminderId] || completionDates[reminderId] === today;
+                return completionDates[reminderId] === today;
             });
             
             if (todayCompletedReminders.length !== completedReminders.length) {
@@ -3740,11 +3748,15 @@ function showModal(modalId) {
             // 获取当前日期作为完成日期
             const todayStr = new Date().toISOString().split('T')[0];
             
-            // 确保完成日期映射存在
-            if (!localStorage.motherBabyReminderCompletionDates) {
-                localStorage.motherBabyReminderCompletionDates = JSON.stringify({});
+            // 确保全局completionDates对象存在
+            if (!window.completionDates) {
+                // 如果不存在，从localStorage初始化
+                if (!localStorage.motherBabyReminderCompletionDates) {
+                    localStorage.motherBabyReminderCompletionDates = JSON.stringify({});
+                }
+                window.completionDates = JSON.parse(localStorage.motherBabyReminderCompletionDates);
             }
-            const completionDates = JSON.parse(localStorage.motherBabyReminderCompletionDates);
+            const completionDates = window.completionDates;
             
             if (index === -1) {
                 completedReminders.push(reminderId);
