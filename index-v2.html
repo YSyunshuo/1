@@ -3520,10 +3520,10 @@ function showModal(modalId) {
                             const endDate = new Date(product.endDate);
                             const todayDate = new Date(today);
                             const reminderId = `product-${product.id}`;
-                            const isCompleted = completedReminders.includes(reminderId);
+                            const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (endDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (endDate < todayDate && !isCompleted) {
                                 historical.push({
                                     id: reminderId,
                                     type: 'product',
@@ -3545,10 +3545,10 @@ function showModal(modalId) {
                             const contactDate = new Date(contact.nextContactDate);
                             const todayDate = new Date(today);
                             const reminderId = `contact-${contact.id}`;
-                            const isCompleted = completedReminders.includes(reminderId);
+                            const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (contactDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (contactDate < todayDate && !isCompleted) {
                                 historical.push({
                                     id: reminderId,
                                     type: 'contact',
@@ -3566,7 +3566,7 @@ function showModal(modalId) {
                             const contactDate = new Date(contact.date);
                             const todayDate = new Date(today);
                             const reminderId = `followup-${contact.id}`;
-                            const isCompleted = completedReminders.includes(reminderId);
+                            const isCompleted = completionDates[reminderId] !== undefined;
                             
                             // 显示过期未完成的提醒，以及今天完成的过期提醒
                             if (contactDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
@@ -3589,10 +3589,10 @@ function showModal(modalId) {
                     const dueDate = new Date(customer.dueDate);
                     const todayDate = new Date(today);
                     const reminderId = `due-${customer.id}`;
-                    const isCompleted = completedReminders.includes(reminderId);
-                    
-                    // 显示过期未完成的提醒，以及今天完成的过期提醒
-                    if (dueDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                    const isCompleted = completionDates[reminderId] !== undefined;
+                            
+                            // 只显示过期未完成的提醒
+                            if (dueDate < todayDate && !isCompleted) {
                         historical.push({
                             id: reminderId,
                             type: 'due',
@@ -3616,10 +3616,10 @@ function showModal(modalId) {
                         const pickupDate = new Date(date);
                         const todayDate = new Date(today);
                         const reminderId = `storage-${record.id}-${date}`;
-                        const isCompleted = completedReminders.includes(reminderId);
-                        
-                        // 显示过期未完成的提醒，以及今天完成的过期提醒
-                    if (pickupDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                        const isCompleted = completionDates[reminderId] !== undefined;
+                            
+                            // 只显示过期未完成的提醒
+                            if (pickupDate < todayDate && !isCompleted) {
                             historical.push({
                                 id: reminderId,
                                 type: 'storage',
@@ -3643,7 +3643,7 @@ function showModal(modalId) {
             }
             
             list.innerHTML = historical.map(reminder => {
-                const isCompleted = completedReminders.includes(reminder.id);
+                const isCompleted = completionDates[reminder.id] !== undefined;
                 const reminderClass = isCompleted ? 'bg-gray-100 opacity-70' : 'bg-yellow-50 border-yellow-200';
                 let iconClass;
                 if (reminder.type === 'product') iconClass = 'fa-shopping-cart';
@@ -3812,8 +3812,9 @@ function showModal(modalId) {
                 }
             }
             
-            // 更新回访提醒的待处理状态（联动功能）
+            // 更新关联提醒的状态（联动功能）
             if (reminderId.startsWith('followup-')) {
+                // 回访提醒
                 const contactId = parseInt(reminderId.split('-')[1]);
                 // 查找对应的联系人记录
                 customers.forEach(customer => {
@@ -3825,6 +3826,60 @@ function showModal(modalId) {
                             return;
                         }
                     });
+                });
+            } else if (reminderId.startsWith('contact-')) {
+                // 联系记录提醒
+                const contactId = parseInt(reminderId.split('-')[1]);
+                // 查找对应的联系人记录
+                customers.forEach(customer => {
+                    customer.contacts.forEach(contact => {
+                        if (contact.id === contactId) {
+                            // 更新联系人记录的状态
+                            contact.result = index === -1 ? '已完成' : '需要回访';
+                            console.log('更新了联系记录的状态:', contact.result);
+                            return;
+                        }
+                    });
+                });
+            } else if (reminderId.startsWith('product-')) {
+                // 产品到期提醒
+                const productId = parseInt(reminderId.split('-')[1]);
+                // 查找对应的产品记录
+                customers.forEach(customer => {
+                    if (customer.products) {
+                        customer.products.forEach(product => {
+                            if (product.id === productId) {
+                                // 更新产品的状态
+                                product.status = index === -1 ? '已完成' : '使用中';
+                                console.log('更新了产品的状态:', product.status);
+                                return;
+                            }
+                        });
+                    }
+                });
+            } else if (reminderId.startsWith('due-')) {
+                // 预产期提醒
+                const customerId = parseInt(reminderId.split('-')[1]);
+                // 查找对应的客户
+                const customer = customers.find(c => c.id === customerId);
+                if (customer) {
+                    // 更新客户的状态
+                    customer.status = index === -1 ? '已完成' : customer.status;
+                    console.log('更新了客户的状态:', customer.status);
+                }
+            } else if (reminderId.startsWith('storage-')) {
+                // 寄存产品预计取货提醒
+                const parts = reminderId.split('-');
+                const storageId = parseInt(parts[1]);
+                const pickupDate = parts[2];
+                // 查找对应的寄存记录
+                storageRecords.forEach(record => {
+                    if (record.id === storageId) {
+                        // 更新寄存记录的状态
+                        record.status = index === -1 ? '已完成' : '待处理';
+                        console.log('更新了寄存记录的状态:', record.status);
+                        return;
+                    }
                 });
             }
             console.log('调用后completedReminders:', completedReminders);
