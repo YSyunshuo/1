@@ -3900,7 +3900,7 @@ function showModal(modalId) {
         // 过滤提醒
         function filterReminders() {
             const filter = document.getElementById('reminder-filter').value;
-            const reminders = document.querySelectorAll('#today-reminders-list > div');
+            const reminders = document.querySelectorAll('#today-reminders-list [data-id]');
             
             reminders.forEach(reminder => {
                 // 从data-id属性获取提醒ID
