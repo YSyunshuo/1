@@ -3520,8 +3520,8 @@ function showModal(modalId) {
                             const reminderId = `product-${product.id}`;
                             const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (endDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (endDate < todayDate && !isCompleted) {
                                 historical.push({
                                     id: reminderId,
                                     type: 'product',
@@ -3545,8 +3545,8 @@ function showModal(modalId) {
                             const reminderId = `contact-${contact.id}`;
                             const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (contactDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (contactDate < todayDate && !isCompleted) {
                                 historical.push({
                                     id: reminderId,
                                     type: 'contact',
@@ -3566,8 +3566,8 @@ function showModal(modalId) {
                             const reminderId = `followup-${contact.id}`;
                             const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (contactDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (contactDate < todayDate && !isCompleted) {
                                 historical.push({
                                     id: reminderId,
                                     type: 'followup',
@@ -3589,8 +3589,8 @@ function showModal(modalId) {
                     const reminderId = `due-${customer.id}`;
                     const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (dueDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (dueDate < todayDate && !isCompleted) {
                         historical.push({
                             id: reminderId,
                             type: 'due',
@@ -3616,8 +3616,8 @@ function showModal(modalId) {
                         const reminderId = `storage-${record.id}-${date}`;
                         const isCompleted = completionDates[reminderId] !== undefined;
                             
-                            // 显示过期未完成的提醒，以及今天完成的过期提醒
-                            if (pickupDate < todayDate && (!isCompleted || (isCompleted && completionDates[reminderId] === today))) {
+                            // 只显示过期未完成的提醒
+                            if (pickupDate < todayDate && !isCompleted) {
                             historical.push({
                                 id: reminderId,
                                 type: 'storage',
