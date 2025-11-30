@@ -3271,7 +3271,6 @@ function showModal(modalId) {
             const completionDates = JSON.parse(localStorage.motherBabyReminderCompletionDates);
             window.completionDates = completionDates; // 保存到全局变量以便在markReminderAsCompleted函数中使用
             
-            // 保留所有已完成的提醒
             // 从localStorage中获取所有已完成的提醒ID
             const allCompletedReminderIds = Object.keys(completionDates);
             // 更新completedReminders数组，确保它包含所有已完成的提醒
