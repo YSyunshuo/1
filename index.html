@@ -3435,14 +3435,14 @@ function showModal(modalId) {
                         const todayDate = new Date(today);
                         const daysLeft = Math.ceil((pickupDate - todayDate) / (1000 * 60 * 60 * 24));
                         
-                        // 只处理未来的提醒（包括今天）
-                        if (daysLeft >= 0) {
+                        // 只处理未来7天内的提醒（包括今天）
+                        if (daysLeft >= 0 && daysLeft <= REMINDER_ADVANCE_DAYS) {
                             // 生成唯一的提醒ID
                             const reminderId = `storage-${record.id}-${date}`;
                             const isCompleted = completedReminders.includes(reminderId);
                             
-                            // 在预计取货日期前settings.reminderDays天提醒
-                            if (daysLeft <= settings.reminderDays) {
+                            // 只显示未完成的提醒和今天完成的提醒
+                            if (!isCompleted || (isCompleted && completionDates[reminderId] === today)) {
                                 reminders.push({
                                     id: reminderId,
                                     type: 'storage',
