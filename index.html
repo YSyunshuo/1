@@ -2669,16 +2669,16 @@ function showModal(modalId) {
 
         // 计算奶粉结束日期
         function calculateMilkEndDate() {
-            const weight = parseFloat(document.getElementById('new-milk-weight').value);
-            const purchaseQuantity = parseInt(document.getElementById('new-milk-purchase-quantity').value);
-            const takeQuantity = parseInt(document.getElementById('new-milk-take-quantity').value);
-            const water = parseInt(document.getElementById('new-milk-water').value);
-            const spoonWeight = parseFloat(document.getElementById('new-milk-spoon-weight').value);
-            const dailyMl = parseFloat(document.getElementById('new-milk-daily-grams').value);
-            const date = document.getElementById('new-milk-date').value;
+            const weight = getElementValue('new-milk-weight', 'number');
+            const purchaseQuantity = getElementValue('new-milk-purchase-quantity', 'integer');
+            const takeQuantity = getElementValue('new-milk-take-quantity', 'integer');
+            const water = getElementValue('new-milk-water', 'integer');
+            const spoonWeight = getElementValue('new-milk-spoon-weight', 'number');
+            const dailyMl = getElementValue('new-milk-daily-grams', 'number');
+            const date = getElementValue('new-milk-date');
             
             if (!weight || !purchaseQuantity || !takeQuantity || !water || !spoonWeight || !dailyMl || !date) {
-                document.getElementById('new-milk-end-date').value = '';
+                setElementValue('new-milk-end-date', '');
                 return;
             }
             
@@ -2692,17 +2692,17 @@ function showModal(modalId) {
             const endDate = new Date(date);
             endDate.setDate(endDate.getDate() + days);
             
-            document.getElementById('new-milk-end-date').value = endDate.toISOString().split('T')[0];
+            setElementValue('new-milk-end-date', endDate.toISOString().split('T')[0]);
         }
 
         // 计算尿不湿结束日期
         function calculateDiaperEndDate() {
-            const purchaseQuantity = parseInt(document.getElementById('new-diaper-purchase-quantity').value);
-            const takeQuantity = parseInt(document.getElementById('new-diaper-take-quantity').value);
-            const date = document.getElementById('new-diaper-date').value;
+            const purchaseQuantity = getElementValue('new-diaper-purchase-quantity', 'integer');
+            const takeQuantity = getElementValue('new-diaper-take-quantity', 'integer');
+            const date = getElementValue('new-diaper-date');
             
             if (!purchaseQuantity || !takeQuantity || !date) {
-                document.getElementById('new-diaper-end-date').value = '';
+                setElementValue('new-diaper-end-date', '');
                 return;
             }
             
@@ -2713,22 +2713,22 @@ function showModal(modalId) {
             const endDate = new Date(date);
             endDate.setDate(endDate.getDate() + totalDays);
             
-            document.getElementById('new-diaper-end-date').value = endDate.toISOString().split('T')[0];
+            setElementValue('new-diaper-end-date', endDate.toISOString().split('T')[0]);
         }
 
         // 计算营养品结束日期
         function calculateNutritionEndDate() {
-            const purchaseQuantity = parseInt(document.getElementById('new-nutrition-purchase-quantity').value);
-            const takeQuantity = parseInt(document.getElementById('new-nutrition-take-quantity').value);
-            const nutritionType = document.getElementById('new-nutrition-type').value;
+            const purchaseQuantity = getElementValue('new-nutrition-purchase-quantity', 'integer');
+            const takeQuantity = getElementValue('new-nutrition-take-quantity', 'integer');
+            const nutritionType = getElementValue('new-nutrition-type');
             // 根据不同的用量类型获取对应的每日使用量
             const dailyAmount = nutritionType === 'daily' 
-                ? parseFloat(document.getElementById('new-nutrition-daily').value)
-                : parseFloat(document.getElementById('new-nutrition-recommended').value);
-            const date = document.getElementById('new-nutrition-date').value;
+                ? getElementValue('new-nutrition-daily', 'number')
+                : getElementValue('new-nutrition-recommended', 'number');
+            const date = getElementValue('new-nutrition-date');
             
             if (!purchaseQuantity || !takeQuantity || !dailyAmount || !date) {
-                document.getElementById('new-nutrition-end-date').value = '';
+                setElementValue('new-nutrition-end-date', '');
                 return;
             }
             
@@ -2739,13 +2739,47 @@ function showModal(modalId) {
             const endDate = new Date(date);
             endDate.setDate(endDate.getDate() + days);
             
-            document.getElementById('new-nutrition-end-date').value = endDate.toISOString().split('T')[0];
+            setElementValue('new-nutrition-end-date', endDate.toISOString().split('T')[0]);
         }
 
+        // 获取元素值的通用函数
+        function getElementValue(id, type = 'string') {
+            const element = document.getElementById(id);
+            if (!element) return type === 'string' ? '' : 0;
+            
+            const value = element.value;
+            if (value === '') {
+                return type === 'string' ? '' : 0;
+            }
+            
+            switch(type) {
+                case 'number':
+                    return parseFloat(value);
+                case 'integer':
+                    return parseInt(value);
+                case 'boolean':
+                    return element.checked;
+                default:
+                    return value;
+            }
+        }
+        
+        // 设置元素值的通用函数
+        function setElementValue(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                if (element.type === 'checkbox') {
+                    element.checked = value;
+                } else {
+                    element.value = value;
+                }
+            }
+        }
+        
         // 保存产品记录
         function saveProductFromButton() {
-            const customerId = parseInt(document.getElementById('product-customer-select').value);
-            const productType = document.getElementById('product-type').value;
+            const customerId = getElementValue('product-customer-select', 'integer');
+            const productType = getElementValue('product-type');
             
             if (!customerId || !productType) {
                 showNotification('请选择客户和产品类型！', 'warning');
@@ -2758,15 +2792,15 @@ function showModal(modalId) {
                 return;
             }
             
-            let product = null;
+            // 使用对象映射替代if-else链，提高可维护性
+            const productCreators = {
+                milk: createMilkProduct,
+                diaper: createDiaperProduct,
+                nutrition: createNutritionProduct
+            };
             
-            if (productType === 'milk') {
-                product = createMilkProduct();
-            } else if (productType === 'diaper') {
-                product = createDiaperProduct();
-            } else if (productType === 'nutrition') {
-                product = createNutritionProduct();
-            }
+            const productCreator = productCreators[productType];
+            const product = productCreator ? productCreator() : null;
             
             if (!product) {
                 showNotification('请填写完整的产品信息！', 'warning');
@@ -2782,9 +2816,9 @@ function showModal(modalId) {
             customer.updatedAt = new Date().toISOString();
             
             // 处理寄存
-            const needStorage = document.getElementById(`new-${productType}-storage`).checked;
+            const needStorage = getElementValue(`new-${productType}-storage`, 'boolean');
             if (needStorage) {
-                const storageQuantity = parseInt(document.getElementById(`new-${productType}-storage-quantity`).value) || 0;
+                const storageQuantity = getElementValue(`new-${productType}-storage-quantity`, 'integer') || 0;
                 if (storageQuantity > 0) {
                     createStorageRecord(customerId, product, storageQuantity);
                 }
@@ -3297,8 +3331,8 @@ function showModal(modalId) {
                             const reminderId = `product-${product.id}`;
                             const isCompleted = completedReminders.includes(reminderId);
                             
-                            // 提前7天提醒，包括当天
-                            if ((!isCompleted && daysLeft >= 0 && daysLeft <= REMINDER_ADVANCE_DAYS) || 
+                            // 只显示未过期的提醒（包括今天）和今天完成的提醒
+                            if ((!isCompleted && endDate >= todayDate && daysLeft <= REMINDER_ADVANCE_DAYS) || 
                                 (isCompleted && completionDates[reminderId] === today)) {
                                 reminders.push({
                                     id: reminderId,
@@ -3318,45 +3352,43 @@ function showModal(modalId) {
                 // 联系记录提醒
                 if (customer.contacts) {
                     customer.contacts.forEach(contact => {
-                        // 常规联系提醒 - 保留过期未完成的提醒
+                        // 常规联系提醒
                         if (contact.nextContactDate) {
                             const contactDate = contact.nextContactDate.split('T')[0];
                             const reminderId = `contact-${contact.id}`;
                             const isCompleted = completedReminders.includes(reminderId);
-                            const isToday = contactDate === today;
-                            const isPast = contactDate < today;
+                            const contactDateObj = new Date(contactDate);
+                            const todayDate = new Date(today);
                             
-                            // 只显示今天的未完成提醒和今天完成的提醒
-                            if ((!isCompleted && isToday) || (isCompleted && completionDates[reminderId] === today)) {
+                            // 只显示未过期的提醒（包括今天）和今天完成的提醒
+                            if ((!isCompleted && contactDateObj >= todayDate) || (isCompleted && completionDates[reminderId] === today)) {
                                 reminders.push({
                                     id: reminderId,
                                     type: 'contact',
                                     customer: customer,
                                     title: `需要联系${customer.name}`,
-                                    description: `上次联系结果：${contact.result}${isPast ? '（已过期）' : ''}`,
+                                    description: `上次联系结果：${contact.result}`,
                                     date: contact.nextContactDate,
-                                    daysLeft: isToday ? 0 : isPast ? -1 : 1
+                                    daysLeft: contactDate === today ? 0 : 1
                                 });
                             }
                         }
                         
-                        // 回访提醒 - 只显示今天或过期的未完成提醒，已完成提醒只显示当天
+                        // 回访提醒
                         if (contact.type === 'follow_up_reminder') {
                             const contactDate = contact.date.split('T')[0];
                             const reminderId = `followup-${contact.id}`;
                             const isCompleted = completedReminders.includes(reminderId);
-                            const isToday = contactDate === today;
-                            const isPast = contactDate < today;
+                            const contactDateObj = new Date(contactDate);
+                            const todayDate = new Date(today);
                             
-                            // 显示条件：
-                            // 1. 未完成的今天提醒
-                            // 2. 已完成的今天提醒
-                            if ((!isCompleted && isToday) || (isCompleted && completionDates[reminderId] === today)) {
+                            // 只显示未过期的提醒（包括今天）和今天完成的提醒
+                            if ((!isCompleted && contactDateObj >= todayDate) || (isCompleted && completionDates[reminderId] === today)) {
                                 reminders.push({
                                     id: reminderId,
                                     type: 'followup',
                                     customer: customer,
-                                    title: `${customer.name}的定期回访提醒${isPast ? '（已过期）' : ''}`,
+                                    title: `${customer.name}的定期回访提醒`,
                                     description: contact.remark,
                                     date: contact.date,
                                     daysLeft: isToday ? 0 : isPast ? -1 : 1
